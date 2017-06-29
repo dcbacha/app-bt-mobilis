@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -47,17 +48,25 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
-    private int i;
 
     private BluetoothAdapter mBluetoothAdapter = null;
 
-    //////////////////////////////
-    WifiManager mainWifi;
+    private ArrayAdapter<String> mResultArrayAdapter;
 
-    StringBuilder sb = new StringBuilder();
-    private final Handler handler = new Handler();
+    private ArrayAdapter<String> mBtResultArrayAdapter;
+    private ArrayAdapter<String> mWifiResultArrayAdapter;
+    private ArrayAdapter<String> mPasswordArrayAdapter;
 
-    @SuppressLint("WifiManagerLeak")
+    private TextView titleBtResult;
+    private TextView titleWifiResult;
+    private TextView titlePasswordResult;
+    private TextView titleStatus;
+
+    private TextView btResult;
+    private TextView wifiResult;
+    private TextView passwordResult;
+    private TextView status;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,15 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-     /*   final Button btn_wifi = (Button) findViewById(R.id.button_wifi);
-        btn_wifi.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                searchWIFI();
-            }
-        });
-*/
-        final Button btn_bt = (Button) findViewById(R.id.button_bt);
+        final Button btn_bt = (Button) findViewById(R.id.button_start);
         btn_bt.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -84,41 +85,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        /////////////////
-       // mNewWifiDeviceArrayAdapter = new ArrayAdapter<>()
-        /////////////////
-     /*   mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        titleBtResult = (TextView) findViewById(R.id.title_bt_result);
+        titleWifiResult = (TextView) findViewById(R.id.title_wifi_result);
+        titlePasswordResult = (TextView) findViewById(R.id.title_password_result);
+        titleStatus = (TextView) findViewById(R.id.title_status);
 
-        IntentFilter filter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        receiverWifi = new WifiReceiver();
-        registerReceiver(receiverWifi, filter);
-        if(mainWifi.isWifiEnabled() == false){
-            mainWifi.setWifiEnabled(true);
-        }
-        if (receiverWifi == null){
-            receiverWifi = new WifiReceiver();
-        }
-*/
+        btResult = (TextView) findViewById(R.id.bt_result);
+        wifiResult = (TextView) findViewById(R.id.wifi_result);
+        passwordResult = (TextView) findViewById(R.id.password_result);
+        status = (TextView) findViewById(R.id.status);
 
     }
 
-    //////////////////////////////////////////////////////////////////
-    /*class WifiReceiver extends BroadcastReceiver{
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ArrayList<String> connections = new ArrayList<String>();
-            ArrayList<Float> Signal_Strenth = new ArrayList<Float>();
-
-            sb = new StringBuilder();
-            List<ScanResult> wifiList;
-            wifiList = mainWifi.getScanResults();
-            for(int i=0; i < wifiList.size(); i++){
-                connections.add(wifiList.get(i).SSID);
-               // Log.i(TAG, String.valueOf(connections));
-            }
-       }
-    }*/
-    //////////////////////////////////////////////////////////////////
 
     public void searchBT(){
         Log.i(TAG, "searchBT()");
@@ -134,17 +112,25 @@ public class MainActivity extends AppCompatActivity {
         if(data != null) {
             Intent serverIntent = new Intent(this, WifiListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+        } else {
+            titleBtResult.setText("Dispositivo Bluetooth:");
+            titleWifiResult.setText("Rede Wifi:");
+            titlePasswordResult.setText("Senha da rede:");
+            titleStatus.setText("Status:");
+
+
+            btResult.setTypeface(null, Typeface.BOLD);
+            wifiResult.setTypeface(null, Typeface.BOLD);
+            passwordResult.setTypeface(null, Typeface.BOLD);
+            status.setTypeface(null, Typeface.BOLD);
+
+            btResult.setText(DeviceListActivity.bt_name);
+            wifiResult.setText(WifiListActivity.info);
+            passwordResult.setText(WifiListActivity.password);
+            status.setText("CONECTADO");
         }
 
     }
-
-  /*  public void searchWIFI(){
-        Log.i(TAG, "searchWIFI()");
-       // mainWifi.startScan();
-        Intent serverIntent = new Intent(this, WifiListActivity.class);
-        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
-    }
-    */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

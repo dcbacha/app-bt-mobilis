@@ -20,6 +20,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,8 +36,8 @@ public class WifiListActivity extends Activity {
     WifiManager mainWifi;
     private ArrayAdapter<String> mNewWifiDevicesArrayAdapter;
     private ArrayAdapter<String> mNetwork;
-    public String info;
-    public String password;
+    public static String info;
+    public static String password;
 
 
 
@@ -64,9 +66,6 @@ public class WifiListActivity extends Activity {
                 view.setVisibility(View.GONE);
             }
         });
-
-
-
 
         mNetwork = new ArrayAdapter<String>(this, R.layout.device_name);
         mNewWifiDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
@@ -103,8 +102,8 @@ public class WifiListActivity extends Activity {
         Log.i(TAG, "doConfiguration()");
         Log.i(TAG, info);
         Log.i(TAG, password);
-        if(DeviceListActivity.bt != null){
-            Log.i(TAG, DeviceListActivity.bt);
+        if(DeviceListActivity.bt_name != null){
+            Log.i(TAG, DeviceListActivity.bt_name);
         }else{
             Log.i(TAG, "conecte um bt");
         }

@@ -3,4 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="mobilisblue">#2A1856</color>
+    <color name="mobilisred">#E6354D</color>
+    <color name="black">#000</color>
 </resources>

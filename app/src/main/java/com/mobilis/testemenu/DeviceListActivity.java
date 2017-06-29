@@ -29,7 +29,8 @@ public class DeviceListActivity extends Activity{
     private BluetoothAdapter mBtAdapter;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
 
-    public static String bt;
+    public static String bt_name;
+    public static String bt_address;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -114,10 +115,9 @@ public class DeviceListActivity extends Activity{
 
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
-            Log.i(TAG, "clicou no device");
             Log.i(TAG, info);
-            bt = info;
-
+            bt_name = info.substring(0, info.length() - 18);
+            bt_address = address;
             Intent intent = new Intent();
             intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
 
