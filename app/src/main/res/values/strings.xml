@@ -10,6 +10,7 @@
     <string name="title_paired_devices">Dispositivos pareados</string>
     <string name="title_other_devices">Outros dispositivos disponíveis:</string>
     <string name="button_scan">Procurar Dispositivos</string>
+    <string name="button_send_pass">Enviar</string>
 
     <!-- Options Menu -->
     <string name="secure_connect">Connect a device - Secure</string>
