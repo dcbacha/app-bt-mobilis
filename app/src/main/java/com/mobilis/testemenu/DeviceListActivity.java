@@ -9,8 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+//import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -69,18 +70,10 @@ public class DeviceListActivity extends Activity{
         this.registerReceiver(mReceiver, filter);
 
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
 
+        String blank = getResources().getText(R.string.blank).toString();
+        pairedDevicesArrayAdapter.add(blank);
 
-        if (pairedDevices.size() > 0) {
-            findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
-            for (BluetoothDevice device : pairedDevices) {
-                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-            }
-        } else {
-            String noDevices = getResources().getText(R.string.none_paired).toString();
-            pairedDevicesArrayAdapter.add(noDevices);
-        }
     }
 
     @Override
@@ -98,9 +91,9 @@ public class DeviceListActivity extends Activity{
         Log.d(TAG, "doDiscovery()");
 
         setProgressBarIndeterminateVisibility(true);
-        setTitle("Procurando dispositivos...");
 
         findViewById(R.id.title_new_devices).setVisibility(View.VISIBLE);
+        setTitle(R.string.scanning);
 
         if(mBtAdapter.isDiscovering()){
             mBtAdapter.cancelDiscovery();
@@ -115,6 +108,8 @@ public class DeviceListActivity extends Activity{
 
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
+          //  Log.d(TAG, "aOnclick=k");
+
             Log.i(TAG, info);
             bt_name = info.substring(0, info.length() - 18);
             bt_address = address;
@@ -130,18 +125,21 @@ public class DeviceListActivity extends Activity{
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
+            String mobilis = "Mobilis";
             if(BluetoothDevice.ACTION_FOUND.equals(action)){
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                if(device.getBondState() != BluetoothDevice.BOND_BONDED){
+                //Lista apenas dispositivos BT de veículos Mobilis
+                if(device.getName().contains(mobilis)) {
                     mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
                 }
+
+
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
                 setProgressBarIndeterminateVisibility(false);
-                setTitle("selecione um dispositivo para conectar");
+                setTitle(R.string.select);
                 if(mNewDevicesArrayAdapter.getCount() == 0){
-                    String noDevices = "No devices found".toString();
+                    String noDevices = getResources().getText(R.string.none_found).toString();
                     mNewDevicesArrayAdapter.add(noDevices);
                 }
             }

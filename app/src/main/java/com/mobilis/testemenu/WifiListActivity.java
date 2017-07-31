@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -20,14 +21,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+//import org.w3c.dom.Text;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by danie on 28/06/2017.
- */
 
 public class WifiListActivity extends Activity {
 
@@ -39,6 +37,8 @@ public class WifiListActivity extends Activity {
     public static String info;
     public static String password;
 
+    //private final EditText pw = null;
+
 
 
     @SuppressLint("WifiManagerLeak")
@@ -47,18 +47,18 @@ public class WifiListActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_device_list);
-        //setProgressBarIndeterminateVisibility(true);
-        setTitle("Escolha uma rede");
+        this.setFinishOnTouchOutside(false);
+        setTitle(R.string.select_network);
 
         TextView divider = (TextView) findViewById(R.id.title_new_devices);
-        divider.setText("Redes disponíveis:");
+        divider.setText(R.string.available_network);
 
 
         mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         setResult(Activity.RESULT_CANCELED);
 
         Button scanButton = (Button) findViewById(R.id.button_scan);
-        scanButton.setText("Procurar redes");
+        scanButton.setText(R.string.search_network);
         scanButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -85,29 +85,26 @@ public class WifiListActivity extends Activity {
             mainWifi.setWifiEnabled(true);
         }
 
-
-
     }
 
     private void doDiscovery(){
         Log.d(TAG, "doDiscovery() - Wifi");
         setProgressBarIndeterminateVisibility(true);
-        setTitle("Procurando redes...");
+        setTitle(R.string.searching_network);
         findViewById(R.id.title_new_devices).setVisibility(View.VISIBLE);
 
         mainWifi.startScan();
     }
 
     private void doConfiguration(){
-        Log.i(TAG, "doConfiguration()");
-        Log.i(TAG, info);
-        Log.i(TAG, password);
+       // Log.i(TAG, "doConfiguration()");
+       // Log.i(TAG, info);
+       // Log.i(TAG, password);
         if(DeviceListActivity.bt_name != null){
             Log.i(TAG, DeviceListActivity.bt_name);
         }else{
             Log.i(TAG, "conecte um bt");
         }
-
 
         finish();
     }
@@ -122,14 +119,20 @@ public class WifiListActivity extends Activity {
             setResult(Activity.RESULT_OK);
 
             setProgressBarIndeterminateVisibility(false);
-            setTitle("Insira a senha da rede");
+            setTitle(R.string.insert_password);
             setContentView(R.layout.activity_password);
+
+            final EditText pw = (EditText) findViewById(R.id.pw);
+            pw.requestFocus();
+
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(pw, InputMethodManager.SHOW_IMPLICIT);
 
             Button sendButton = (Button) findViewById(R.id.button_password);
             sendButton.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View view) {
-                    final EditText pw = (EditText) findViewById(R.id.pw);
+                    //final EditText pw = (EditText) findViewById(R.id.pw);
                     password = pw.getText().toString();
                     doConfiguration();
                     view.setVisibility(View.GONE);

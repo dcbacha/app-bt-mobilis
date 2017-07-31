@@ -1,44 +1,22 @@
 package com.mobilis.testemenu;
 
-import android.annotation.SuppressLint;
-import android.app.ActionBar;
-import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Typeface;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,16 +24,13 @@ public class MainActivity extends AppCompatActivity {
 
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
-    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
+    private static final int REQUEST_SEARCH_BT = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
+    private static final int CONECTADO = 10;
+    private static final int DESCONECTADO = 11;
+
     private BluetoothAdapter mBluetoothAdapter = null;
-
-    private ArrayAdapter<String> mResultArrayAdapter;
-
-    private ArrayAdapter<String> mBtResultArrayAdapter;
-    private ArrayAdapter<String> mWifiResultArrayAdapter;
-    private ArrayAdapter<String> mPasswordArrayAdapter;
 
     private TextView titleBtResult;
     private TextView titleWifiResult;
@@ -67,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView passwordResult;
     private TextView status;
 
+    private StringBuffer mOutStringBuffer;
+    private BluetoothChatService mChatService = null;
+    private ProgressDialog progress = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +54,17 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // If the adapter is null, then Bluetooth is not supported
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            this.finish();
+        }
+
+        if(!mBluetoothAdapter.isEnabled()){
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
 
         final Button btn_bt = (Button) findViewById(R.id.button_start);
         btn_bt.setOnClickListener(new View.OnClickListener(){
@@ -95,76 +85,136 @@ public class MainActivity extends AppCompatActivity {
         passwordResult = (TextView) findViewById(R.id.password_result);
         status = (TextView) findViewById(R.id.status);
 
+        mChatService = new BluetoothChatService(this, mHandler);
+
+        mOutStringBuffer = new StringBuffer("");
+
     }
 
-
     public void searchBT(){
-        Log.i(TAG, "searchBT()");
+       // Log.i(TAG, "searchBT()");
         Intent serverIntent = new Intent(this, DeviceListActivity.class);
-        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+        startActivityForResult(serverIntent, REQUEST_SEARCH_BT);
 
+    }
+
+    public void searchWifi(){
+       // Log.i(TAG, "searchWifi()");
+        Intent serverIntent = new Intent(this, WifiListActivity.class);
+        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i(TAG, String.valueOf(data));
+        progress = new ProgressDialog(this, ProgressDialog.THEME_HOLO_DARK);
+        if (resultCode != 0) {
+            if (requestCode == REQUEST_SEARCH_BT) {
 
-        if(data != null) {
-            Intent serverIntent = new Intent(this, WifiListActivity.class);
-            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
-        } else {
-            titleBtResult.setText("Dispositivo Bluetooth:");
-            titleWifiResult.setText("Rede Wifi:");
-            titlePasswordResult.setText("Senha da rede:");
-            titleStatus.setText("Status:");
+                connectDevice(data, true);
+                progress.setTitle(R.string.connecting);
+                progress.setMessage(getResources().getText(R.string.waiting).toString());
+                progress.setCancelable(true);
+                progress.show();
+            } else if (requestCode == REQUEST_CONNECT_DEVICE_SECURE) {
 
+                sendMessage(WifiListActivity.info + "\n" + WifiListActivity.password + "\n \n");
+                //setConnectedStatus(CONECTADO);
+                progress.setTitle(R.string.configuring);
+                progress.setMessage(getResources().getText(R.string.waiting).toString());
+                progress.show();
 
-            btResult.setTypeface(null, Typeface.BOLD);
-            wifiResult.setTypeface(null, Typeface.BOLD);
-            passwordResult.setTypeface(null, Typeface.BOLD);
-            status.setTypeface(null, Typeface.BOLD);
-
-            btResult.setText(DeviceListActivity.bt_name);
-            wifiResult.setText(WifiListActivity.info);
-            passwordResult.setText(WifiListActivity.password);
-            status.setText("CONECTADO");
+            }
         }
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+    private void sendMessage(String message) {
+        if (message.length() > 0) {
+            byte[] send = message.getBytes();
+            mChatService.write(send);
+            mOutStringBuffer.setLength(0);
+        }
+    }
+
+    /**
+     * The Handler that gets information back from the BluetoothChatService
+     */
+    private final Handler mHandler = new Handler() {
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        public void handleMessage(Message msg) {
+
+            switch (msg.what) {
+                case Constants.MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case BluetoothChatService.STATE_CONNECTED:
+                            progress.dismiss();
+                            searchWifi();
+                            break;
+                        case BluetoothChatService.STATE_CONNECTING:
+                            progress.show();
+                            break;
+                        case BluetoothChatService.STATE_NONE:
+                            progress.dismiss();
+                            break;
+                    }
+                    break;
+                case Constants.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    String readMessage = new String(readBuf, 0, msg.arg1);
+                    //Log.i(TAG, "----------------mensagem no handler read");
+                   // Log.i(TAG, String.valueOf(readMessage));
+                    if(readMessage.equals("sucesso")){
+                        //Log.i(TAG, "--------------- SUCESOOOO");
+                        if (setConnectedStatus(CONECTADO)){
+                            progress.dismiss();
+                           // mChatService.stop();
+                        }
+
+                    } else if (readMessage.equals("falhou")){
+                        //Log.i(TAG, "---------------- FALHOOU :(");
+                        if (setConnectedStatus(DESCONECTADO)) {
+                            progress.dismiss();
+                          //  mChatService.stop();
+                        }
+                    }
+                    break;
+            }
+        }
+    };
+
+
+    private void connectDevice(Intent data, boolean secure) {
+        String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        mChatService.connect(device, secure);
+    }
+
+    private boolean setConnectedStatus(int mensagem){
+
+        titleBtResult.setText(R.string.bt_device);
+        titleWifiResult.setText(R.string.wifi_name);
+        titlePasswordResult.setText(R.string.wifi_password);
+        titleStatus.setText(R.string.status);
+
+        btResult.setTypeface(null, Typeface.BOLD);
+        wifiResult.setTypeface(null, Typeface.BOLD);
+        passwordResult.setTypeface(null, Typeface.BOLD);
+        status.setTypeface(null, Typeface.BOLD);
+
+        btResult.setText(DeviceListActivity.bt_name);
+        wifiResult.setText(WifiListActivity.info);
+        passwordResult.setText(WifiListActivity.password);
+
+        if (mensagem == CONECTADO) {
+
+            status.setText(R.string.connected);
+        }
+        else if (mensagem == DESCONECTADO){
+
+            status.setText(R.string.error);
+        }
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.insecure_connect_scan: {
-
-                Log.i(TAG, "clicou no insecure");
-                Intent serverIntent = new Intent(this, DeviceListActivity.class);
-                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
-                return true;
-            }
-            case R.id.discoverable: {
-
-                Log.i(TAG, "clicou no discoverable");
-               // ensureDiscoverable();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void ensureDiscoverable() {
-        if (mBluetoothAdapter.getScanMode() !=
-                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-            startActivity(discoverableIntent);
-        }
-    }
 }

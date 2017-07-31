@@ -3,20 +3,34 @@
     <string name="action_settings">Settings</string>
 
     <!--  DeviceListActivity -->
-    <string name="scanning">procurar por dispositivos...</string>
-    <string name="select_device">Escolha um dispositivo</string>
-    <string name="none_paired">Nenhum dispositivo pareado</string>
-    <string name="none_found">nenhum dispositivo encontrado</string>
-    <string name="title_paired_devices">Dispositivos pareados</string>
-    <string name="title_other_devices">Outros dispositivos disponíveis:</string>
-    <string name="button_scan">Procurar Dispositivos</string>
-    <string name="button_send_pass">Conectar</string>
+    <string name="scanning">Procurando veículos...</string>
+    <string name="select_device">Escolha um veículo</string>
+    <string name="blank"> </string>
+    <string name="select">Selecione um veículo para conectar</string>
+    <string name="none_found">Nenhum veículo encontrado. Tente novamente.</string>
 
+    <string name="title_paired_devices">Dispositivos pareados</string>
+
+    <string name="title_other_devices">Veículos disponíveis:</string>
+    <string name="button_scan">Procurar</string>
+    <string name="button_send_pass">Conectar</string>
 
     <string name="button_search_car">Procurar veículo</string>
 
-    <!-- Options Menu -->
-    <string name="secure_connect">Connect a device - Secure</string>
-    <string name="insecure_connect">Connect a device - Insecure</string>
-    <string name="discoverable">Make discoverable</string>
+    <string name="select_network">Escolha uma rede Wi-Fi</string>
+    <string name="available_network">Redes disponíveis:</string>
+    <string name="search_network">Procurar redes</string>
+    <string name="searching_network">Procurando redes...</string>
+    <string name="insert_password">Insira a senha da rede</string>
+
+    <string name="connecting">Conectando</string>
+    <string name="waiting">Aguarde...</string>
+    <string name="configuring">Configurando veículo...</string>
+
+    <string name="connected">CONECTADO</string>
+    <string name="error">Algo deu errado. Tente novamente.</string>
+    <string name="bt_device">Dispositivo Bluetooth:</string>
+    <string name="wifi_name">Rede Wi-fi:</string>
+    <string name="wifi_password">Senha da rede:</string>
+    <string name="status">Status:</string>
 </resources>
