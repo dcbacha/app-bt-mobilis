@@ -7,16 +7,22 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int CONECTADO = 10;
     private static final int DESCONECTADO = 11;
+
+    private int nFake=0;
 
     private BluetoothAdapter mBluetoothAdapter = null;
 
@@ -45,6 +53,12 @@ public class MainActivity extends AppCompatActivity {
     private StringBuffer mOutStringBuffer;
     private BluetoothChatService mChatService = null;
     private ProgressDialog progress = null;
+
+    private ImageView red_button;
+    private ImageView blue_button;
+
+    Handler fakeHandler;
+    private Timer mFakeTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +103,13 @@ public class MainActivity extends AppCompatActivity {
 
         mOutStringBuffer = new StringBuffer("");
 
+        red_button = (ImageView) findViewById(R.id.red_button);
+        blue_button = (ImageView) findViewById(R.id.blue_button);
+
+       // red_button.setVisibility(View.VISIBLE);
+        red_button.setVisibility(View.GONE);
+        blue_button.setVisibility(View.GONE);
+
     }
 
     public void searchBT(){
@@ -100,6 +121,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void searchWifi(){
        // Log.i(TAG, "searchWifi()");
+
+        sendMessage("wifi\n");
+
         Intent serverIntent = new Intent(this, WifiListActivity.class);
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
     }
@@ -107,6 +131,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         progress = new ProgressDialog(this, ProgressDialog.THEME_HOLO_DARK);
+
+        Log.i("requestCode", String.valueOf(requestCode));
+        Log.i("resultCode", String.valueOf(resultCode));
+        Log.i("Intent", String.valueOf(data));
+
+
         if (resultCode != 0) {
             if (requestCode == REQUEST_SEARCH_BT) {
 
@@ -117,15 +147,56 @@ public class MainActivity extends AppCompatActivity {
                 progress.show();
             } else if (requestCode == REQUEST_CONNECT_DEVICE_SECURE) {
 
-                sendMessage(WifiListActivity.info + "\n" + WifiListActivity.password + "\n \n");
+                //sendMessage(WifiListActivity.info + "\n" + WifiListActivity.password + "\n \n");
                 //setConnectedStatus(CONECTADO);
                 progress.setTitle(R.string.configuring);
                 progress.setMessage(getResources().getText(R.string.waiting).toString());
                 progress.show();
+                //fakeData();
 
+                mFakeTimer = new Timer();
+                mFakeTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                progress.dismiss();
+                                setConnectedStatus(CONECTADO);
+                            }
+                        });
+                    }
+                }, 2000);
+
+
+               // SystemClock.sleep(2000);
+                //progress.dismiss();
+                //setConnectedStatus(CONECTADO);
             }
         }
 
+    }
+
+    private void fakeData(){
+       /* fakeHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                progress.dismiss();
+                setConnectedStatus(CONECTADO);
+            }
+        }, 2000);*/
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                progress.dismiss();
+                setConnectedStatus(CONECTADO);
+            }
+        }, 2000);
+
+       // SystemClock.sleep(2000);
+       // progress.dismiss();
+       // setConnectedStatus(CONECTADO);
     }
 
     private void sendMessage(String message) {
@@ -149,6 +220,8 @@ public class MainActivity extends AppCompatActivity {
                     switch (msg.arg1) {
                         case BluetoothChatService.STATE_CONNECTED:
                             progress.dismiss();
+                            //red_button.setVisibility(View.GONE);
+                            //blue_button.setVisibility(View.VISIBLE);
                             searchWifi();
                             break;
                         case BluetoothChatService.STATE_CONNECTING:
@@ -156,6 +229,11 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case BluetoothChatService.STATE_NONE:
                             progress.dismiss();
+                            nFake ++;
+                            //red_button.setVisibility(View.VISIBLE);
+                            //blue_button.setVisibility(View.GONE);
+                            if (nFake ==1) searchWifi();
+                            //else if (nFake == 2) setConnectedStatus(CONECTADO);
                             break;
                     }
                     break;
@@ -165,17 +243,18 @@ public class MainActivity extends AppCompatActivity {
                     //Log.i(TAG, "----------------mensagem no handler read");
                    // Log.i(TAG, String.valueOf(readMessage));
                     if(readMessage.equals("sucesso")){
-                        //Log.i(TAG, "--------------- SUCESOOOO");
+                        Log.i(TAG, "--------------- SUCESOOOO");
                         if (setConnectedStatus(CONECTADO)){
                             progress.dismiss();
-                           // mChatService.stop();
+                            //mChatService.stop();
                         }
 
                     } else if (readMessage.equals("falhou")){
-                        //Log.i(TAG, "---------------- FALHOOU :(");
+                        Log.i(TAG, "---------------- FALHOOU :(");
                         if (setConnectedStatus(DESCONECTADO)) {
                             progress.dismiss();
-                          //  mChatService.stop();
+                           // mChatService.stop();
+
                         }
                     }
                     break;

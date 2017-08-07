@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 //import android.support.v7.app.AppCompatActivity;
@@ -32,6 +33,7 @@ public class DeviceListActivity extends Activity{
 
     public static String bt_name;
     public static String bt_address;
+    Handler fakeHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class DeviceListActivity extends Activity{
             public void onClick(View view) {
                 doDiscovery();
                 view.setVisibility(View.GONE);
+                //fakeData();
             }
         });
 
@@ -73,6 +76,8 @@ public class DeviceListActivity extends Activity{
 
         String blank = getResources().getText(R.string.blank).toString();
         pairedDevicesArrayAdapter.add(blank);
+
+        fakeHandler = new Handler();
 
     }
 
@@ -100,6 +105,23 @@ public class DeviceListActivity extends Activity{
         }
 
         mBtAdapter.startDiscovery();
+
+        //fakeData();
+        fakeHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                fakeData();
+            }
+        }, 3000);
+    }
+
+    private void fakeData() {
+        Log.i("------------", "fakedata");
+       // SystemClock.sleep(5000);
+        Log.i("-----------", "depois sleep");
+
+        mNewDevicesArrayAdapter.add("Mobilis01" + "\n" + "DC:85:DE:1F:1F:62");
+
     }
 
     public AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {

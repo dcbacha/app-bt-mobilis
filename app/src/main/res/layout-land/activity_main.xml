@@ -7,6 +7,7 @@
     android:background="@color/white"
     tools:context="com.mobilis.testemenu.MainActivity">
 
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="1217dp"
@@ -31,6 +32,33 @@
 
     <include
         layout="@layout/content_main"
-        android:layout_height="599dp" />
+        android:layout_height="599dp"
+        android:id="@+id/include" />
+
+    <ImageView
+        android:id="@+id/red_button"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="24dp"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="top|right"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/red_button" />
+
+    <ImageView
+        android:id="@+id/blue_button"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="24dp"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="top|right"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/blue_button" />
 
 </android.support.design.widget.CoordinatorLayout>
